@@ -50,12 +50,22 @@ This will give us correlation values that range from -1 to 1, where:
 )
 
 # Pearson correlation test (for linear relationships)
-pearson_corr, _ = pearsonr(df['price'], df['usdprice'])  # Example: price vs usdprice
-st.subheader(f'Pearson Correlation between price and usdprice: {pearson_corr}')
+pearson_corr, _ = pearsonr(df['price'], df['usdprice']) 
+st.markdown(
+"""
+##### Pearson Correlation between price and usdprice
+"""
+)
+st.text(f'{pearson_corr}')
 
 # Spearman correlation test (for monotonic relationships)
-spearman_corr, _ = spearmanr(df['price'], df['usdprice'])  # Example: price vs usdprice
-st.subheader(f'Spearman Correlation between price and usdprice: {spearman_corr}')
+spearman_corr, _ = spearmanr(df['price'], df['usdprice']) 
+st.markdown(
+"""
+##### Spearman Correlation between price and usdprice
+"""
+)
+st.text(f'{spearman_corr}')
 
 st.markdown(
 """
