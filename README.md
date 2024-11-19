@@ -49,3 +49,15 @@ You can download the dataset from [WFP Food Prices Dataset](https://data.humdata
 Through comprehensive analysis and modeling, this project aims to provide valuable insights into food price trends in Pakistan and inform policy decisions to enhance food security and economic stability in the country.
 
 ---
+
+### Installation Guide
+
+```
+python -m venv venv
+
+pip install requirements.txt
+
+cd food_price_analytics
+
+streamlit run Introduction.py
+```
