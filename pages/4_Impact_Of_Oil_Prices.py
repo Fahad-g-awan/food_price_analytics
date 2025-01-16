@@ -4,6 +4,7 @@ from sklearn.linear_model import LinearRegression
 from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
 import streamlit as st
+import seaborn as sns
 import pandas as pd
 
 from utils.data_processing import get_df
@@ -30,6 +31,82 @@ Steps:
 - Visualize the coefficients to understand the impact of oil prices on each commodity.
 """)
 
+# # Filter rows where 'commodity' is 'Fuel (diesel)' or 'Fuel (petrol-gasoline)'
+# oil_price_df = df[df['commodity'].isin(['Fuel (diesel)', 'Fuel (petrol-gasoline)'])]
+# food_price_df = df[~df['commodity'].isin(['Fuel (diesel)', 'Fuel (petrol-gasoline)'])]
+
+# # Check if the filtered dataset has data
+# if not oil_price_df.empty and not food_price_df.empty:
+#     # Merge on a common column (e.g., 'date') to align fuel and food prices
+#     merged_df = pd.merge(oil_price_df[['date', 'price']], food_price_df[['date', 'price']], on='date', suffixes=('_fuel', '_food'))
+
+#     # Check if the merged dataset has data
+#     if not merged_df.empty:
+#         # Select features and target variable
+#         X = merged_df[['price_fuel']]  # Independent variable: fuel price
+#         y = merged_df['price_food']    # Dependent variable: food price
+
+#         # Split the data into training and testing sets
+#         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#         # Initialize the model
+#         model = LinearRegression()
+
+#         # Fit the model
+#         model.fit(X_train, y_train)
+
+#         # Calculate Pearson correlation
+#         corr, _ = pearsonr(X.values.flatten(), y.values.flatten())
+#         st.markdown(
+#         """
+#         #### Pearson correlation
+#         """
+#         )
+#         st.text(corr)
+#         st.markdown(
+#         """
+#         Pearson Correlation can be used to explore the relationships between food prices and oil prices
+#         """
+#         )
+
+#         # Print the regression coefficients
+#         st.markdown(
+#         """
+#         ##### Coefficient for fuel price
+#         """
+#         )
+#         st.text(model.coef_)
+#         st.markdown(
+#         """
+#         ##### Intercept
+#         """
+#         )
+#         st.text(model.intercept_)
+#         st.text("\n\n")
+
+#         # Predict the food prices using the test set
+#         y_pred = model.predict(X_test)
+        
+#         st.markdown(
+#         """
+#         ##### Visualization
+#         """
+#         )
+
+#         # Plot the predictions vs actual values
+#         plt.figure(figsize=(8, 6))
+#         plt.scatter(y_test, y_pred, color='blue', label='Predicted vs Actual')
+#         plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--', label='Perfect Fit')
+#         plt.title('Actual vs Predicted Food Prices')
+#         plt.xlabel('Actual Food Prices')
+#         plt.ylabel('Predicted Food Prices')
+#         plt.legend()
+#         st.pyplot(plt)
+#     else:
+#         st.text("No matching data available for fuel and food prices.")
+# else:
+#     st.text("No fuel price data available in the dataset")
+
 # Filter rows where 'commodity' is 'Fuel (diesel)' or 'Fuel (petrol-gasoline)'
 oil_price_df = df[df['commodity'].isin(['Fuel (diesel)', 'Fuel (petrol-gasoline)'])]
 food_price_df = df[~df['commodity'].isin(['Fuel (diesel)', 'Fuel (petrol-gasoline)'])]
@@ -37,13 +114,21 @@ food_price_df = df[~df['commodity'].isin(['Fuel (diesel)', 'Fuel (petrol-gasolin
 # Check if the filtered dataset has data
 if not oil_price_df.empty and not food_price_df.empty:
     # Merge on a common column (e.g., 'date') to align fuel and food prices
-    merged_df = pd.merge(oil_price_df[['date', 'price']], food_price_df[['date', 'price']], on='date', suffixes=('_fuel', '_food'))
+    merged_df = pd.merge(oil_price_df[['date', 'price']], food_price_df[['date', 'price']], 
+                         on='date', suffixes=('_fuel', '_food'))
 
     # Check if the merged dataset has data
     if not merged_df.empty:
+        # Aggregate data to reduce duplication
+        aggregated_df = merged_df.groupby(['date', 'price_fuel']).agg({'price_food': 'mean'}).reset_index()
+
+        # Debug: Display aggregated data
+        st.markdown("### Aggregated Data")
+        st.write(aggregated_df.head())
+
         # Select features and target variable
-        X = merged_df[['price_fuel']]  # Independent variable: fuel price
-        y = merged_df['price_food']    # Dependent variable: food price
+        X = aggregated_df[['price_fuel']]  # Independent variable: fuel price
+        y = aggregated_df['price_food']    # Dependent variable: food price
 
         # Split the data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -56,55 +141,51 @@ if not oil_price_df.empty and not food_price_df.empty:
 
         # Calculate Pearson correlation
         corr, _ = pearsonr(X.values.flatten(), y.values.flatten())
-        st.markdown(
-        """
-        #### Pearson correlation
-        """
-        )
-        st.text(corr)
-        st.markdown(
-        """
-        Pearson Correlation can be used to explore the relationships between food prices and oil prices
-        """
-        )
+        st.markdown("### Pearson Correlation")
+        st.text(f"Pearson Correlation: {corr:.2f}")
 
         # Print the regression coefficients
-        st.markdown(
-        """
-        ##### Coefficient for fuel price
-        """
-        )
-        st.text(model.coef_)
-        st.markdown(
-        """
-        ##### Intercept
-        """
-        )
-        st.text(model.intercept_)
-        st.text("\n\n")
+        st.markdown("### Regression Coefficients")
+        st.text(f"Coefficient for Fuel Price: {model.coef_[0]:.2f}")
+        st.text(f"Intercept: {model.intercept_:.2f}")
 
         # Predict the food prices using the test set
         y_pred = model.predict(X_test)
-        
-        st.markdown(
-        """
-        ##### Visualization
-        """
-        )
 
-        # Plot the predictions vs actual values
+        # Scatter plot with jitter
+        st.markdown("### Scatter Plot: Fuel vs Food Prices (With Jitter)")
         plt.figure(figsize=(8, 6))
-        plt.scatter(y_test, y_pred, color='blue', label='Predicted vs Actual')
+        sns.scatterplot(x='price_fuel', y='price_food', data=aggregated_df, alpha=0.7, color='blue')
+        plt.xlabel('Fuel Price')
+        plt.ylabel('Food Price')
+        plt.title('Fuel Prices vs Food Prices (Aggregated)')
+        st.pyplot(plt)
+
+        # Visualization: Actual vs Predicted
+        st.markdown("### Actual vs Predicted Food Prices")
+        plt.figure(figsize=(8, 6))
+        plt.scatter(y_test, y_pred, color='blue', alpha=0.7, label='Predicted vs Actual')
         plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--', label='Perfect Fit')
-        plt.title('Actual vs Predicted Food Prices')
         plt.xlabel('Actual Food Prices')
         plt.ylabel('Predicted Food Prices')
+        plt.title('Actual vs Predicted Food Prices')
+        plt.legend()
+        st.pyplot(plt)
+
+        # Time-series plot
+        st.markdown("### Fuel vs Food Prices Over Time")
+        plt.figure(figsize=(10, 6))
+        plt.plot(aggregated_df['date'], aggregated_df['price_fuel'], label='Fuel Price', color='orange')
+        plt.plot(aggregated_df['date'], aggregated_df['price_food'], label='Food Price', color='green')
+        plt.xlabel('Date')
+        plt.ylabel('Price')
+        plt.title('Fuel vs Food Prices Over Time')
         plt.legend()
         st.pyplot(plt)
     else:
         st.text("No matching data available for fuel and food prices.")
 else:
-    st.text("No fuel price data available in the dataset")
+    st.text("No fuel price data available in the dataset.")
 
 
 st.markdown(

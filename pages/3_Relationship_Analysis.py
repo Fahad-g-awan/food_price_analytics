@@ -14,8 +14,6 @@ st.markdown(
 """
 # Relationship Analysis
 
-To analyze seasonality and trends more formally, we can use time-series decomposition. This will allow us to break down the data into its trend, seasonality, and residual components
-
 ---
 
 ### Correlation Matrix
